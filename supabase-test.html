@@ -1,2 +1,144 @@
-const SUPABASE_URL = 'https://uklgbmusuvcvjzpvfxuo.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_5OTzVBsVU1v_uYeuA-mhIg_R9C-wcUO';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kingston Supabase Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #f5f5f5;
+      padding: 24px;
+      margin: 0;
+    }
+    .card {
+      background: #1b1b1b;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    h1, h2 { color: #d4a63f; }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #0d0d0d;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Kingston Supabase Test</h1>
+
+  <div class="card">
+    <h2>Connection Status</h2>
+    <div id="status">Starting...</div>
+  </div>
+
+  <div class="card">
+    <h2>Company</h2>
+    <pre id="company">Waiting...</pre>
+  </div>
+
+  <div class="card">
+    <h2>Staff</h2>
+    <pre id="staff">Waiting...</pre>
+  </div>
+
+  <div class="card">
+    <h2>Customers</h2>
+    <pre id="customers">Waiting...</pre>
+  </div>
+
+  <div class="card">
+    <h2>Invoices</h2>
+    <pre id="invoices">Waiting...</pre>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://uklgbmusuvcvjzpvfxuo.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_5OTzVBsVU1v_uYeuA-mhIg_R9C-wcUO';
+
+    const statusEl = document.getElementById('status');
+    const companyEl = document.getElementById('company');
+    const staffEl = document.getElementById('staff');
+    const customersEl = document.getElementById('customers');
+    const invoicesEl = document.getElementById('invoices');
+
+    function showError(msg) {
+      statusEl.textContent = 'Error: ' + msg;
+      companyEl.textContent = 'Failed';
+      staffEl.textContent = 'Failed';
+      customersEl.textContent = 'Failed';
+      invoicesEl.textContent = 'Failed';
+    }
+
+    window.addEventListener('error', function (e) {
+      showError(e.message || 'Script error');
+    });
+
+    window.addEventListener('unhandledrejection', function (e) {
+      const msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);
+      showError(msg);
+    });
+
+    async function loadData() {
+      try {
+        statusEl.textContent = 'Loading Supabase library...';
+
+        if (!window.supabase || !window.supabase.createClient) {
+          throw new Error('Supabase library did not load');
+        }
+
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        statusEl.textContent = 'Reading company...';
+        const { data: company, error: companyError } = await client
+          .from('company_settings')
+          .select('*')
+          .limit(1);
+
+        if (companyError) throw companyError;
+        companyEl.textContent = JSON.stringify(company, null, 2);
+
+        statusEl.textContent = 'Reading staff...';
+        const { data: staff, error: staffError } = await client
+          .from('staff')
+          .select('full_name, role, active')
+          .order('full_name');
+
+        if (staffError) throw staffError;
+        staffEl.textContent = JSON.stringify(staff, null, 2);
+
+        statusEl.textContent = 'Reading customers...';
+        const { data: customers, error: customersError } = await client
+          .from('customers')
+          .select('customer_code, full_name, phone')
+          .order('full_name');
+
+        if (customersError) throw customersError;
+        customersEl.textContent = JSON.stringify(customers, null, 2);
+
+        statusEl.textContent = 'Reading invoices...';
+        const { data: invoices, error: invoicesError } = await client
+          .from('invoices')
+          .select('invoice_number, status, total, issue_date')
+          .order('issue_date', { ascending: false });
+
+        if (invoicesError) throw invoicesError;
+        invoicesEl.textContent = JSON.stringify(invoices, null, 2);
+
+        statusEl.textContent = 'Success';
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
