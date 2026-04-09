@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kingston Enterprises Group - Kingston Service App MVP</title>
+
+<meta name="theme-color" content="#b8860b" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Kingston App" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <style>
+    :root {
+      --bg: #f7f4ee;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #b8860b;
+      --primary-soft: #f6e7b2;
+      --success: #15803d;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(110, 78, 18, 0.12);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .hidden { display: none !important; }
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 250px 1fr;
+    }
+    .sidebar {
+      background: #2f2417;
+      color: #fff;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .brand {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: 0.3px;
+    }
+    .brand small { display:block; font-size:12px; opacity:0.7; font-weight:500; margin-top:4px; }
+    .nav-btn {
+      border: 0;
+      background: transparent;
+      color: #cbd5e1;
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .nav-btn.active, .nav-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .content {
+      padding: 26px;
+      overflow: auto;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .title { font-size: 28px; font-weight: 800; margin: 0; }
+    .subtitle { color: var(--muted); margin-top: 6px; }
+    .row { display: grid; gap: 18px; }
+    .cards-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .cards-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cards-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .metric { font-size: 32px; font-weight: 800; margin: 6px 0 0; }
+    .label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .card h3, .card h4 { margin: 0 0 12px; }
+    .grid-main { display:grid; grid-template-columns: 2fr 1fr; gap:18px; margin-top:18px; }
+    .list { display:flex; flex-direction:column; gap:12px; }
+    .job-item, .customer-item, .invoice-item, .staff-item {
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+      background:#fff;
+    }
+    .job-main { display:flex; gap:14px; }
+    .job-time {
+      min-width:64px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight:800;
+      border-radius:14px;
+      padding:12px 10px;
+      text-align:center;
+    }
+    .muted { color: var(--muted); }
+    .badge {
+      display:inline-flex;
+      align-items:center;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      white-space:nowrap;
+      border:1px solid transparent;
+    }
+    .status_New, .status_Draft { background:#f3f4f6; color:#374151; }
+    .status_Scheduled, .status_Sent { background:#dbeafe; color:#1d4ed8; }
+    .status_Checked_In, .status_In_Progress { background:#dbeafe; color:#1e3a8a; }
+    .status_Completed, .status_Paid, .status_Approved { background:#dcfce7; color:#166534; }
+    .status_Waiting { background:#ffedd5; color:#c2410c; }
+    .status_Cancelled, .status_Overdue, .status_Rejected { background:#fee2e2; color:#b91c1c; }
+    .status_Invoiced { background:#f3e8ff; color:#7e22ce; }
+    .btn-row { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn {
+      border:0;
+      border-radius:14px;
+      padding:12px 16px;
+      font-weight:700;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .btn.primary { background: var(--primary); color:#fff; }
+    .btn.secondary { background:#eef2ff; color: var(--primary); }
+    .btn.light { background:#f3f4f6; color:#111827; }
+    .btn.success { background:#dcfce7; color:#166534; }
+    .btn.danger { background:#fee2e2; color:#b91c1c; }
+    .btn:disabled { opacity:0.5; cursor:not-allowed; }
+    input, select, textarea {
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 14px;
+      font-size:14px;
+      background:#fff;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    .form-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:14px; }
+    .form-group { display:flex; flex-direction:column; gap:7px; }
+    label { font-size:13px; font-weight:700; color:#374151; }
+    .auth-wrap {
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background: linear-gradient(180deg, #fbf6e8, #f8fafc);
+    }
+    .auth-card {
+      width:100%;
+      max-width:420px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:24px;
+      box-shadow: var(--shadow);
+      padding:28px;
+    }
+    .auth-title { font-size:30px; font-weight:800; margin:0 0 6px; }
+    .demo-box {
+      background:#eff6ff;
+      color:#1e3a8a;
+      padding:12px 14px;
+      border-radius:14px;
+      font-size:13px;
+      margin-bottom:16px;
+    }
+    .toolbar {
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    table {
+      width:100%;
+      border-collapse: collapse;
+      font-size:14px;
+    }
+    th, td {
+      text-align:left;
+      padding:12px 10px;
+      border-bottom:1px solid var(--border);
+      vertical-align:top;
+    }
+    th { color:#6b7280; font-size:12px; text-transform:uppercase; letter-spacing:0.06em; }
+    .section-title { margin:0 0 14px; font-size:20px; font-weight:800; }
+    .mobile-shell {
+      max-width:480px;
+      margin:0 auto;
+      background:#fff;
+      min-height:calc(100vh - 52px);
+      border-radius:26px;
+      box-shadow: var(--shadow);
+      border:1px solid var(--border);
+      overflow:hidden;
+    }
+    .mobile-header {
+      padding:20px 18px 14px;
+      border-bottom:1px solid var(--border);
+      background:#fff;
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+    .mobile-content { padding:16px; display:flex; flex-direction:column; gap:14px; }
+    .bottom-nav {
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      border-top:1px solid var(--border);
+      background:#fff;
+      position:sticky;
+      bottom:0;
+    }
+    .bottom-nav button {
+      border:0;
+      background:#fff;
+      padding:14px 8px;
+      cursor:pointer;
+      font-weight:700;
+      color:var(--muted);
+    }
+    .bottom-nav button.active { color: var(--primary); background:#eff6ff; }
+    .pill-tabs { display:flex; gap:8px; overflow:auto; }
+    .pill-tabs button {
+      border:1px solid var(--border);
+      background:#fff;
+      padding:10px 14px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .pill-tabs button.active { background: var(--primary); color:#fff; border-color:var(--primary); }
+    .detail-grid { display:grid; grid-template-columns:1.4fr 1fr; gap:18px; }
+    .toast {
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      background:#111827;
+      color:#fff;
+      padding:14px 16px;
+      border-radius:14px;
+      box-shadow: var(--shadow);
+      z-index:20;
+      max-width:320px;
+    }
+
+.install-fab {
+  position: fixed;
+  right: 16px;
+  top: 16px;
+  z-index: 40;
+  display: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 16px;
+  background: #b8860b;
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 10px 30px rgba(110,78,18,.25);
+  cursor: pointer;
+}
+.install-fab.show { display: inline-flex; align-items: center; gap: 8px; }
+    }
+    .empty {
+      padding:20px;
+      text-align:center;
+      color:var(--muted);
+      border:1px dashed var(--border);
+      border-radius:16px;
+      background:#fff;
+    }
+    .top-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .small { font-size: 12px; }
+    .spacer-8 { height:8px; }
+    .spacer-16 { height:16px; }
+    .preview-img { width:72px; height:72px; object-fit:cover; border-radius:12px; border:1px solid var(--border); }
+
+    .brand-block { display:flex; flex-direction:column; align-items:flex-start; gap:12px; margin-bottom:16px; }
+    .brand-logo { width:200px; max-width:100%; height:auto; object-fit:contain; border-radius:16px; border:1px solid rgba(184,134,11,0.18); background:#fff; padding:8px; }
+    .brand-text { display:flex; flex-direction:column; }
+    .brand-tagline { font-size:12px; color: var(--muted); margin-top:2px; }
+    .hero-brand { display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px; }
+    .hero-brand .brand-logo { width:280px; max-width:100%; height:auto; border-radius:20px; padding:10px; }
+    .hero-brand-name { font-size:22px; font-weight:800; color:var(--primary); text-align:center; line-height:1.15; }
+    .hero-brand-sub { font-size:12px; color:var(--muted); text-align:center; }
+    @media (max-width: 1000px) {
+      .cards-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-main, .detail-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { display:none; }
+      .content { padding:16px; }
+      .cards-4, .cards-3, .cards-2, .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <button id="install-app-btn" class="install-fab" aria-label="Install app">Install App</button>
+  <div id="app"></div>
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+    const STORAGE_KEY = 'kingston_service_app_mvp_v2';
+    const SESSION_KEY = 'kingston_service_app_session_v2';
+
+    const seedData = {
+      staff: [
+        { id: 's1', name: 'John Carter', role: 'Field Cleaner', email: 'worker@demo.com', phone: '0400 555 101', gps: true, active: true },
+        { id: 's2', name: 'Alex Brown', role: 'Field Cleaner', email: 'alex@demo.com', phone: '0400 555 202', gps: true, active: true },
+        { id: 's3', name: 'Maria Lee', role: 'Supervisor', email: 'maria@demo.com', phone: '0400 555 303', gps: true, active: true },
+      ],
+      customers: [
+        { id: 'c1', name: 'Emma Wilson', business: '', phone: '0400 111 111', email: 'emma@example.com', address: '25 Bay Street, Melbourne VIC', notes: 'Use pet-safe products.' },
+        { id: 'c2', name: 'BrightCare Dental', business: 'BrightCare Dental', phone: '03 9000 2000', email: 'admin@brightcare.com', address: '12 King Road, Melbourne VIC', notes: 'Access from rear entrance.' },
+        { id: 'c3', name: 'Michael Tan', business: '', phone: '0400 222 333', email: 'michael@example.com', address: '8 River Lane, Geelong VIC', notes: '' },
+      ],
+      jobs: [
+        {
+          id: 'j1',
+          title: 'Deep Cleaning',
+          serviceType: 'Home Cleaning',
+          customerId: 'c1',
+          date: new Date().toISOString().slice(0,10),
+          startTime: '09:00',
+          endTime: '11:00',
+          status: 'Scheduled',
+          assignedStaffIds: ['s1'],
+          notes: ['Customer asked to clean balcony area as well.'],
+          photos: [],
+          signature: '',
+          checkInTime: '',
+          checkOutTime: '',
+          description: 'Full deep clean for kitchen, lounge and bathroom.',
+          invoiceId: ''
+        },
+        {
+          id: 'j2',
+          title: 'Office Cleaning',
+          serviceType: 'Commercial Cleaning',
+          customerId: 'c2',
+          date: new Date().toISOString().slice(0,10),
+          startTime: '13:00',
+          endTime: '15:30',
+          status: 'In Progress',
+          assignedStaffIds: ['s2','s3'],
+          notes: ['Front desk area already completed.'],
+          photos: [],
+          signature: '',
+          checkInTime: '12:57',
+          checkOutTime: '',
+          description: 'Weekly office clean including reception and treatment rooms.',
+          invoiceId: ''
+        },
+        {
+          id: 'j3',
+          title: 'End of Lease Clean',
+          serviceType: 'Move Out Cleaning',
+          customerId: 'c3',
+          date: nextDate(1),
+          startTime: '10:00',
+          endTime: '14:00',
+          status: 'New',
+          assignedStaffIds: ['s1'],
+          notes: [],
+          photos: [],
+          signature: '',
+          checkInTime: '',
+          checkOutTime: '',
+          description: 'End of lease clean for 2-bedroom apartment.',
+          invoiceId: ''
+        }
+      ],
+      invoices: [
+        { id: 'i1', number: 'INV-1008', customerId: 'c1', jobId: 'j0', amount: 320, status: 'Sent', dueDate: nextDate(7), notes: '' }
+      ],
+      notifications: [
+        { id: 'n1', user: 'worker', title: 'New job assigned', body: 'Deep Cleaning at 9:00 AM', read: false },
+        { id: 'n2', user: 'admin', title: 'Invoice sent', body: 'INV-1008 sent to Emma Wilson', read: false }
+      ],
+      quotes: [
+        { id: 'q1', number: 'QT-2041', customerId: 'c2', amount: 540, status: 'Draft' }
+      ]
+    };
+
+    function nextDate(offset) {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      return d.toISOString().slice(0,10);
+    }
+
+    let state = loadState();
+    let session = loadSession();
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : structuredClone(seedData);
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadSession() {
+      const saved = localStorage.getItem(SESSION_KEY);
+      return saved ? JSON.parse(saved) : { loggedIn: false, role: '', userId: '', page: 'dashboard', mobilePage: 'home', activeJobId: '', jobsTab: 'Today' };
+    }
+
+    function saveSession() {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
+
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.add('hidden'), 2200);
+    }
+
+    function currentWorker() {
+      return state.staff.find(s => s.id === session.userId) || state.staff[0];
+    }
+
+    function customerById(id) { return state.customers.find(c => c.id === id); }
+    function jobById(id) { return state.jobs.find(j => j.id === id); }
+    function invoiceById(id) { return state.invoices.find(i => i.id === id); }
+
+    function jobsForWorker(workerId) {
+      return state.jobs.filter(j => j.assignedStaffIds.includes(workerId));
+    }
+
+    function formatDate(dateStr) {
+      return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+
+    function statusBadge(status) {
+      return `<span class="badge status_${status.replace(/ /g, '_')}">${status}</span>`;
+    }
+
+    function render() {
+      const app = document.getElementById('app');
+      if (!session.loggedIn) {
+        app.innerHTML = renderLogin();
+        bindLogin();
+        return;
+      }
+      if (session.role === 'admin') {
+        app.innerHTML = renderAdminShell();
+        bindAdmin();
+      } else {
+        app.innerHTML = renderWorkerShell();
+        bindWorker();
+      }
+    }
+
+    function renderLogin() {
+      return `
+        <div class="auth-wrap">
+          <div class="auth-card">
+            <div class="hero-brand">
+              <img class="brand-logo" src="kingston-logo.jpg" alt="Kingston Enterprises Group logo" />
+              <div class="hero-brand-name">Kingston Enterprises Group</div>
+              <div class="hero-brand-sub">Kingston Service App MVP</div>
+            </div>
+            <h1 class="auth-title">Welcome back</h1>
+            <div class="subtitle">Login as admin or worker to open the Kingston app.</div>
+            <div class="demo-box">
+              <strong>Demo logins</strong><br>
+              Admin: <strong>admin@demo.com</strong> / <strong>1234</strong><br>
+              Worker: <strong>worker@demo.com</strong> / <strong>1234</strong>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input id="login-email" type="email" value="admin@demo.com" />
+            </div>
+            <div class="spacer-8"></div>
+            <div class="form-group">
+              <label>Password</label>
+              <input id="login-password" type="password" value="1234" />
+            </div>
+            <div class="spacer-16"></div>
+            <div class="btn-row">
+              <button class="btn primary" id="login-btn">Login</button>
+              <button class="btn light" id="fill-worker">Use Worker</button>
+              <button class="btn light" id="fill-admin">Use Admin</button>
+            </div>
+            <div class="spacer-16"></div>
+            <div class="btn-row">
+              <button class="btn secondary" id="reset-data">Reset demo data</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function bindLogin() {
+      document.getElementById('fill-worker').onclick = () => {
+        document.getElementById('login-email').value = 'worker@demo.com';
+        document.getElementById('login-password').value = '1234';
+      };
+      document.getElementById('fill-admin').onclick = () => {
+        document.getElementById('login-email').value = 'admin@demo.com';
+        document.getElementById('login-password').value = '1234';
+      };
+      document.getElementById('reset-data').onclick = () => {
+        state = structuredClone(seedData);
+        session = { loggedIn: false, role: '', userId: '', page: 'dashboard', mobilePage: 'home', activeJobId: '', jobsTab: 'Today' };
+        saveState(); saveSession(); render();
+        toast('Demo data reset');
+      };
+      document.getElementById('login-btn').onclick = () => {
+        const email = document.getElementById('login-email').value.trim().toLowerCase();
+        const password = document.getElementById('login-password').value.trim();
+        if (password !== '1234') return toast('Wrong demo password');
+        if (email === 'admin@demo.com') {
+          session = { ...session, loggedIn: true, role: 'admin', userId: 'admin', page: 'dashboard' };
+        } else if (email === 'worker@demo.com') {
+          session = { ...session, loggedIn: true, role: 'worker', userId: 's1', mobilePage: 'home', jobsTab: 'Today' };
+        } else {
+          return toast('Use the demo accounts');
+        }
+        saveSession();
+        render();
+      };
+    }
+
+    function adminNavButton(page, label) {
+      return `<button class="nav-btn ${session.page === page ? 'active' : ''}" data-page="${page}">${label}</button>`;
+    }
+
+    function renderAdminShell() {
+      return `
+      <div class="app-shell">
+        <aside class="sidebar">
+          <div class="brand-block">
+            <img class="brand-logo" src="kingston-logo.jpg" alt="Kingston Enterprises Group logo" />
+            <div class="brand-text">
+              <div class="brand">Kingston Enterprises Group</div>
+              <small>Admin Dashboard</small>
+            </div>
+          </div>
+          ${adminNavButton('dashboard', 'Dashboard')}
+          ${adminNavButton('customers', 'Customers')}
+          ${adminNavButton('jobs', 'Jobs')}
+          ${adminNavButton('calendar', 'Calendar')}
+          ${adminNavButton('invoices', 'Invoices')}
+          ${adminNavButton('quotes', 'Quotes')}
+          ${adminNavButton('reports', 'Reports')}
+          <div style="flex:1"></div>
+          <button class="nav-btn" id="admin-logout">Logout</button>
+        </aside>
+        <main class="content">${renderAdminPage()}</main>
+      </div>`;
+    }
+
+    function renderAdminPage() {
+      switch (session.page) {
+        case 'customers': return renderCustomersPage();
+        case 'jobs': return renderJobsPage();
+        case 'calendar': return renderCalendarPage();
+        case 'invoices': return renderInvoicesPage();
+        case 'quotes': return renderQuotesPage();
+        case 'reports': return renderReportsPage();
+        default: return renderDashboardPage();
+      }
+    }
+
+    function renderDashboardPage() {
+      const jobsToday = state.jobs.filter(j => j.date === new Date().toISOString().slice(0,10));
+      const inProgress = state.jobs.filter(j => j.status === 'In Progress').length;
+      const completed = state.jobs.filter(j => j.status === 'Completed').length;
+      const unpaid = state.invoices.filter(i => i.status !== 'Paid').length;
+      const active = state.staff.filter(s => s.active).length;
+      const late = state.jobs.filter(j => j.status === 'Scheduled' && j.date === new Date().toISOString().slice(0,10) && j.startTime < currentTime()).length;
+      return `
+        <div class="topbar">
+          <div>
+            <h1 class="title">Dashboard</h1>
+            <div class="subtitle">Manage jobs, staff, customers and invoices.</div>
+          </div>
+          <div class="top-actions">
+            <button class="btn secondary" id="switch-to-worker">Open worker view</button>
+            <button class="btn primary" id="quick-add-customer">Add Customer</button>
+            <button class="btn primary" id="quick-add-job">Create Job</button>
+          </div>
+        </div>
+        <div class="row cards-4">
+          ${metricCard('Jobs Today', jobsToday.length)}
+          ${metricCard('In Progress', inProgress)}
+          ${metricCard('Completed', completed)}
+          ${metricCard('Unpaid Invoices', unpaid)}
+        </div>
+        <div class="spacer-16"></div>
+        <div class="row cards-2">
+          ${metricCard('Active Staff', active)}
+          ${metricCard('Late Arrivals', late)}
+        </div>
+        <div class="grid-main">
+          <div class="card">
+            <h3 class="section-title">Today's schedule</h3>
+            <div class="list">
+              ${jobsToday.length ? jobsToday.map(jobCardAdmin).join('') : `<div class="empty">No jobs today</div>`}
+            </div>
+          </div>
+          <div class="row">
+            <div class="card">
+              <h3 class="section-title">Active staff</h3>
+              <div class="list">
+                ${state.staff.map(s => `
+                  <div class="staff-item">
+                    <div><strong>${s.name}</strong><div class="muted">${s.role}</div></div>
+                    <div>${s.active ? '<span class="badge status-Completed">Active</span>' : '<span class="badge status-Cancelled">Inactive</span>'}</div>
+                  </div>`).join('')}
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="section-title">Recent invoices</h3>
+              <div class="list">
+                ${state.invoices.slice(-3).reverse().map(i => `
+                  <div class="invoice-item">
+                    <div><strong>${i.number}</strong><div class="muted">${customerById(i.customerId)?.name || ''}</div></div>
+                    <div>${statusBadge(i.status)}</div>
+                  </div>`).join('')}
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderCustomersPage() {
+      return `
+        <div class="topbar">
+          <div>
+            <h1 class="title">Customers</h1>
+            <div class="subtitle">Create and manage customer records.</div>
+          </div>
+          <div class="top-actions"><button class="btn primary" id="quick-add-customer">Add Customer</button></div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Customer list</h3>
+          <table>
+            <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${state.customers.map(c => `
+                <tr>
+                  <td><strong>${c.name}</strong>${c.business ? `<div class="muted small">${c.business}</div>` : ''}</td>
+                  <td>${c.phone}</td>
+                  <td>${c.email}</td>
+                  <td>${c.address}</td>
+                  <td><button class="btn light btn-view-customer" data-id="${c.id}">View</button></td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div id="customer-detail-slot"></div>`;
+    }
+
+    function renderCustomerDetail(id) {
+      const c = customerById(id);
+      if (!c) return '';
+      const jobs = state.jobs.filter(j => j.customerId === id);
+      const invoices = state.invoices.filter(i => i.customerId === id);
+      return `
+      <div class="spacer-16"></div>
+      <div class="detail-grid">
+        <div class="card">
+          <h3 class="section-title">${c.name}</h3>
+          <div class="muted">${c.business || 'Private customer'}</div>
+          <div class="spacer-8"></div>
+          <div><strong>Phone:</strong> ${c.phone}</div>
+          <div><strong>Email:</strong> ${c.email}</div>
+          <div><strong>Address:</strong> ${c.address}</div>
+          <div><strong>Notes:</strong> ${c.notes || '—'}</div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Customer actions</h3>
+          <div class="btn-row">
+            <button class="btn primary" id="create-job-for-customer" data-id="${c.id}">Create Job</button>
+            <button class="btn secondary" id="create-invoice-for-customer" data-id="${c.id}">Create Invoice</button>
+          </div>
+        </div>
+      </div>
+      <div class="spacer-16"></div>
+      <div class="row cards-2">
+        <div class="card">
+          <h3 class="section-title">Job history</h3>
+          <div class="list">${jobs.length ? jobs.map(jobCardAdmin).join('') : `<div class="empty">No jobs yet</div>`}</div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Invoices</h3>
+          <div class="list">${invoices.length ? invoices.map(i => `<div class="invoice-item"><div><strong>${i.number}</strong><div class="muted">$${i.amount}</div></div><div>${statusBadge(i.status)}</div></div>`).join('') : `<div class="empty">No invoices yet</div>`}</div>
+        </div>
+      </div>`;
+    }
+
+    function renderJobsPage() {
+      return `
+        <div class="topbar">
+          <div>
+            <h1 class="title">Jobs</h1>
+            <div class="subtitle">Create, assign and finish bookings.</div>
+          </div>
+          <div class="top-actions"><button class="btn primary" id="quick-add-job">Create Job</button></div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">All jobs</h3>
+          <table>
+            <thead><tr><th>ID</th><th>Customer</th><th>Date</th><th>Time</th><th>Staff</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${state.jobs.map(j => `
+                <tr>
+                  <td><strong>${j.id.toUpperCase()}</strong><div class="muted small">${j.title}</div></td>
+                  <td>${customerById(j.customerId)?.name || ''}</td>
+                  <td>${formatDate(j.date)}</td>
+                  <td>${j.startTime} - ${j.endTime}</td>
+                  <td>${j.assignedStaffIds.map(id => state.staff.find(s => s.id === id)?.name).join(', ')}</td>
+                  <td>${statusBadge(j.status)}</td>
+                  <td><button class="btn light btn-open-job" data-id="${j.id}">Open</button></td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div id="job-detail-slot"></div>`;
+    }
+
+    function renderJobDetailAdmin(id) {
+      const j = jobById(id); if (!j) return '';
+      const c = customerById(j.customerId);
+      const inv = j.invoiceId ? invoiceById(j.invoiceId) : null;
+      return `
+        <div class="spacer-16"></div>
+        <div class="topbar">
+          <div>
+            <h2 class="title" style="font-size:24px">${j.title}</h2>
+            <div class="subtitle">${c?.name || ''} · ${formatDate(j.date)} · ${j.startTime}-${j.endTime}</div>
+          </div>
+          <div class="top-actions">
+            ${statusBadge(j.status)}
+            <button class="btn secondary btn-set-status" data-id="${j.id}" data-status="Completed">Mark Completed</button>
+            <button class="btn primary btn-create-invoice" data-id="${j.id}">Create Invoice</button>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div class="row">
+            <div class="card">
+              <h3 class="section-title">Customer info</h3>
+              <div><strong>${c?.name || ''}</strong></div>
+              <div class="muted">${c?.phone || ''}</div>
+              <div>${c?.address || ''}</div>
+            </div>
+            <div class="card">
+              <h3 class="section-title">Service details</h3>
+              <div><strong>Type:</strong> ${j.serviceType}</div>
+              <div><strong>Description:</strong> ${j.description || '—'}</div>
+            </div>
+            <div class="card">
+              <h3 class="section-title">Notes</h3>
+              <div class="list">${j.notes.length ? j.notes.map(n => `<div class="job-item"><div>${n}</div></div>`).join('') : `<div class="empty">No notes yet</div>`}</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="card">
+              <h3 class="section-title">Assigned staff</h3>
+              <div class="list">${j.assignedStaffIds.map(id => {
+                const s = state.staff.find(x => x.id === id);
+                return `<div class="staff-item"><div><strong>${s.name}</strong><div class="muted">${s.role}</div></div></div>`;
+              }).join('')}</div>
+            </div>
+            <div class="card">
+              <h3 class="section-title">Activity</h3>
+              <div><strong>Check in:</strong> ${j.checkInTime || '—'}</div>
+              <div><strong>Check out:</strong> ${j.checkOutTime || '—'}</div>
+              <div><strong>Signature:</strong> ${j.signature || '—'}</div>
+            </div>
+            <div class="card">
+              <h3 class="section-title">Invoice</h3>
+              ${inv ? `<div><strong>${inv.number}</strong></div><div class="muted">$${inv.amount}</div><div class="spacer-8"></div>${statusBadge(inv.status)}` : `<div class="empty">No invoice yet</div>`}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderCalendarPage() {
+      const jobsByDate = [...state.jobs].sort((a,b) => (a.date+a.startTime).localeCompare(b.date+b.startTime));
+      const grouped = jobsByDate.reduce((acc, job) => {
+        (acc[job.date] ||= []).push(job); return acc;
+      }, {});
+      return `
+        <div class="topbar">
+          <div>
+            <h1 class="title">Calendar</h1>
+            <div class="subtitle">Schedule view by day.</div>
+          </div>
+        </div>
+        <div class="row">
+          ${Object.entries(grouped).map(([date, jobs]) => `
+            <div class="card">
+              <h3 class="section-title">${formatDate(date)}</h3>
+              <div class="list">${jobs.map(jobCardAdmin).join('')}</div>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    function renderInvoicesPage() {
+      return `
+        <div class="topbar">
+          <div>
+            <h1 class="title">Invoices</h1>
+            <div class="subtitle">Create invoices and record payment.</div>
+          </div>
+          <div class="top-actions"><button class="btn primary" id="quick-create-generic-invoice">Create Invoice</button></div>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Number</th><th>Customer</th><th>Job</th><th>Amount</th><th>Due date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${state.invoices.map(i => `
+                <tr>
+                  <td><strong>${i.number}</strong></td>
+                  <td>${customerById(i.customerId)?.name || ''}</td>
+                  <td>${i.jobId ? (jobById(i.jobId)?.title || '—') : '—'}</td>
+                  <td>$${i.amount}</td>
+                  <td>${i.dueDate}</td>
+                  <td>${statusBadge(i.status)}</td>
+                  <td>${i.status !== 'Paid' ? `<button class="btn success btn-pay-invoice" data-id="${i.id}">Record Payment</button>` : ''}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    function renderQuotesPage() {
+      return `
+        <div class="topbar">
+          <div>
+            <h1 class="title">Quotes</h1>
+            <div class="subtitle">Simple quote list for the MVP.</div>
+          </div>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Number</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              ${state.quotes.map(q => `
+                <tr>
+                  <td><strong>${q.number}</strong></td>
+                  <td>${customerById(q.customerId)?.name || ''}</td>
+                  <td>$${q.amount}</td>
+                  <td>${statusBadge(q.status)}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    function renderReportsPage() {
+      const totalRevenue = state.invoices.reduce((sum, i) => sum + Number(i.amount || 0), 0);
+      const paidRevenue = state.invoices.filter(i => i.status === 'Paid').reduce((sum, i) => sum + Number(i.amount || 0), 0);
+      return `
+        <div class="topbar">
+          <div>
+            <h1 class="title">Reports</h1>
+            <div class="subtitle">Simple business summary for the MVP.</div>
+          </div>
+        </div>
+        <div class="row cards-3">
+          ${metricCard('Total Jobs', state.jobs.length)}
+          ${metricCard('Total Invoice Value', '$' + totalRevenue)}
+          ${metricCard('Paid Revenue', '$' + paidRevenue)}
+        </div>
+        <div class="spacer-16"></div>
+        <div class="row cards-2">
+          <div class="card"><h3 class="section-title">Jobs by status</h3>${statusSummary(state.jobs.map(j => j.status))}</div>
+          <div class="card"><h3 class="section-title">Invoices by status</h3>${statusSummary(state.invoices.map(i => i.status))}</div>
+        </div>`;
+    }
+
+    function statusSummary(arr) {
+      const map = {};
+      arr.forEach(s => map[s] = (map[s] || 0) + 1);
+      return `<div class="list">${Object.entries(map).map(([k,v]) => `<div class="job-item"><div>${statusBadge(k)}</div><div><strong>${v}</strong></div></div>`).join('')}</div>`;
+    }
+
+    function metricCard(label, value) {
+      return `<div class="card"><div class="label">${label}</div><div class="metric">${value}</div></div>`;
+    }
+
+    function jobCardAdmin(j) {
+      const c = customerById(j.customerId);
+      return `
+        <div class="job-item">
+          <div class="job-main">
+            <div class="job-time">${j.startTime}</div>
+            <div>
+              <strong>${j.title}</strong>
+              <div>${c?.name || ''}</div>
+              <div class="muted small">${c?.address || ''}</div>
+            </div>
+          </div>
+          <div class="btn-row">
+            ${statusBadge(j.status)}
+            <button class="btn light btn-open-job" data-id="${j.id}">Open</button>
+          </div>
+        </div>`;
+    }
+
+    function bindAdmin() {
+      document.querySelectorAll('[data-page]').forEach(btn => btn.onclick = () => {
+        session.page = btn.dataset.page; saveSession(); render();
+      });
+      document.getElementById('admin-logout').onclick = logout;
+      const switchBtn = document.getElementById('switch-to-worker');
+      if (switchBtn) switchBtn.onclick = () => { session.role = 'worker'; session.userId = 's1'; saveSession(); render(); };
+      document.querySelectorAll('.btn-open-job').forEach(btn => btn.onclick = () => {
+        const slot = document.getElementById('job-detail-slot');
+        if (slot) {
+          slot.innerHTML = renderJobDetailAdmin(btn.dataset.id);
+          bindAdminDetailActions();
+          slot.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          session.page = 'jobs'; saveSession(); render();
+          setTimeout(() => {
+            const slot2 = document.getElementById('job-detail-slot');
+            slot2.innerHTML = renderJobDetailAdmin(btn.dataset.id);
+            bindAdminDetailActions();
+            slot2.scrollIntoView({ behavior: 'smooth' });
+          }, 0);
+        }
+      });
+      document.querySelectorAll('.btn-view-customer').forEach(btn => btn.onclick = () => {
+        const slot = document.getElementById('customer-detail-slot');
+        slot.innerHTML = renderCustomerDetail(btn.dataset.id);
+        bindCustomerDetailActions();
+        slot.scrollIntoView({ behavior: 'smooth' });
+      });
+      const addCustomer = document.getElementById('quick-add-customer');
+      if (addCustomer) addCustomer.onclick = openCustomerForm;
+      const addJob = document.getElementById('quick-add-job');
+      if (addJob) addJob.onclick = openJobForm;
+      const genericInv = document.getElementById('quick-create-generic-invoice');
+      if (genericInv) genericInv.onclick = () => openInvoiceForm();
+      document.querySelectorAll('.btn-pay-invoice').forEach(btn => btn.onclick = () => {
+        const inv = invoiceById(btn.dataset.id);
+        inv.status = 'Paid';
+        saveState(); render(); toast(`Payment recorded for ${inv.number}`);
+      });
+    }
+
+    function bindCustomerDetailActions() {
+      const btn = document.getElementById('create-job-for-customer');
+      if (btn) btn.onclick = () => openJobForm(btn.dataset.id);
+      const invBtn = document.getElementById('create-invoice-for-customer');
+      if (invBtn) invBtn.onclick = () => openInvoiceForm(invBtn.dataset.id);
+    }
+
+    function bindAdminDetailActions() {
+      document.querySelectorAll('.btn-set-status').forEach(btn => btn.onclick = () => {
+        const job = jobById(btn.dataset.id);
+        job.status = btn.dataset.status;
+        job.checkOutTime = currentTime();
+        saveState();
+        const slot = document.getElementById('job-detail-slot');
+        slot.innerHTML = renderJobDetailAdmin(job.id);
+        bindAdminDetailActions();
+        toast(`Job marked ${job.status}`);
+      });
+      document.querySelectorAll('.btn-create-invoice').forEach(btn => btn.onclick = () => openInvoiceForm(null, btn.dataset.id));
+    }
+
+    function openCustomerForm() {
+      const name = prompt('Customer name'); if (!name) return;
+      const phone = prompt('Phone number', '');
+      const email = prompt('Email', '');
+      const address = prompt('Address', '');
+      const id = 'c' + (Date.now());
+      state.customers.unshift({ id, name, business: '', phone, email, address, notes: '' });
+      saveState(); render(); toast('Customer added');
+    }
+
+    function openJobForm(customerId = '') {
+      const title = prompt('Job title', 'General Service'); if (!title) return;
+      const customer = customerId || prompt(`Customer ID (${state.customers.map(c => c.id + ':' + c.name).join(', ')})`, state.customers[0].id);
+      if (!customerById(customer)) return toast('Invalid customer ID');
+      const date = prompt('Date (YYYY-MM-DD)', new Date().toISOString().slice(0,10)); if (!date) return;
+      const startTime = prompt('Start time (HH:MM)', '09:00') || '09:00';
+      const endTime = prompt('End time (HH:MM)', '11:00') || '11:00';
+      const serviceType = prompt('Service type', 'Cleaning') || 'Cleaning';
+      const desc = prompt('Description', '') || '';
+      const assigned = prompt(`Assign staff IDs separated by comma (${state.staff.map(s => s.id + ':' + s.name).join(', ')})`, 's1') || 's1';
+      const ids = assigned.split(',').map(s => s.trim()).filter(Boolean).filter(id => state.staff.some(st => st.id === id));
+      const id = 'j' + Date.now();
+      state.jobs.unshift({ id, title, customerId: customer, date, startTime, endTime, status: 'Scheduled', assignedStaffIds: ids.length ? ids : ['s1'], notes: [], photos: [], signature: '', checkInTime: '', checkOutTime: '', description: desc, serviceType, invoiceId: '' });
+      saveState(); render(); toast('Job created and assigned');
+    }
+
+    function openInvoiceForm(customerId = '', jobId = '') {
+      const customer = customerId || (jobId ? jobById(jobId)?.customerId : prompt(`Customer ID (${state.customers.map(c => c.id + ':' + c.name).join(', ')})`, state.customers[0].id));
+      if (!customerById(customer)) return toast('Invalid customer ID');
+      const amount = Number(prompt('Invoice amount', '250') || 0);
+      if (!amount) return;
+      const dueDate = prompt('Due date (YYYY-MM-DD)', nextDate(7)) || nextDate(7);
+      const id = 'i' + Date.now();
+      const number = 'INV-' + String(Math.floor(Math.random() * 9000) + 1000);
+      state.invoices.unshift({ id, number, customerId: customer, jobId: jobId || '', amount, status: 'Sent', dueDate, notes: '' });
+      if (jobId) jobById(jobId).invoiceId = id;
+      saveState(); render(); toast(`Invoice ${number} created`);
+    }
+
+    function renderWorkerShell() {
+      return `<div class="content" style="padding:26px 12px">${renderWorkerPage()}</div>`;
+    }
+
+    function workerNavBtn(page, label) {
+      return `<button class="${session.mobilePage === page ? 'active' : ''}" data-mobile-page="${page}">${label}</button>`;
+    }
+
+    function renderWorkerPage() {
+      const worker = currentWorker();
+      const titleMap = { home: 'Home', jobs: 'My Jobs', calendar: 'Calendar', profile: 'Profile', detail: 'Job Details' };
+      return `
+      <div class="mobile-shell">
+        <div class="mobile-header">
+          <div class="label">Kingston Enterprises Group</div>
+          <h1 class="title" style="font-size:24px; margin-top:4px">${titleMap[session.mobilePage] || 'Home'}</h1>
+          <div class="subtitle">${worker.name} · ${worker.role}</div>
+        </div>
+        <div class="mobile-content">${renderWorkerBody()}</div>
+        <div class="bottom-nav">
+          ${workerNavBtn('home', 'Home')}
+          ${workerNavBtn('jobs', 'Jobs')}
+          ${workerNavBtn('calendar', 'Calendar')}
+          ${workerNavBtn('profile', 'Profile')}
+        </div>
+      </div>`;
+    }
+
+    function renderWorkerBody() {
+      switch (session.mobilePage) {
+        case 'jobs': return renderWorkerJobs();
+        case 'calendar': return renderWorkerCalendar();
+        case 'profile': return renderWorkerProfile();
+        case 'detail': return renderWorkerDetail();
+        default: return renderWorkerHome();
+      }
+    }
+
+    function renderWorkerHome() {
+      const worker = currentWorker();
+      const jobs = jobsForWorker(worker.id);
+      const today = new Date().toISOString().slice(0,10);
+      const todayJobs = jobs.filter(j => j.date === today);
+      const nextJob = [...todayJobs].sort((a,b) => a.startTime.localeCompare(b.startTime)).find(j => j.status !== 'Completed') || todayJobs[0];
+      return `
+        <div class="card">
+          <div class="label">Today</div>
+          <div class="metric">${todayJobs.length}</div>
+          <div class="muted">Jobs scheduled for today</div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Next job</h3>
+          ${nextJob ? `
+            <div><strong>${nextJob.title}</strong></div>
+            <div>${customerById(nextJob.customerId)?.name || ''}</div>
+            <div class="muted">${customerById(nextJob.customerId)?.address || ''}</div>
+            <div class="spacer-8"></div>
+            <div class="btn-row">
+              ${statusBadge(nextJob.status)}
+              <button class="btn primary" id="open-next-job" data-id="${nextJob.id}">Open Job</button>
+            </div>` : `<div class="empty">No jobs today</div>`}
+        </div>
+        <div class="row cards-2">
+          <div class="card"><h3 class="section-title">Quick access</h3><div class="btn-row"><button class="btn secondary" data-mobile-page="jobs">My Jobs</button><button class="btn secondary" data-mobile-page="calendar">Calendar</button></div></div>
+          <div class="card"><h3 class="section-title">Completed</h3><div class="metric">${jobs.filter(j => j.status === 'Completed').length}</div></div>
+        </div>`;
+    }
+
+    function renderWorkerJobs() {
+      const worker = currentWorker();
+      const jobs = jobsForWorker(worker.id).sort((a,b) => (a.date+a.startTime).localeCompare(b.date+b.startTime));
+      const today = new Date().toISOString().slice(0,10);
+      const filtered = jobs.filter(j => {
+        if (session.jobsTab === 'Today') return j.date === today;
+        if (session.jobsTab === 'Upcoming') return j.date > today || (j.date === today && j.status !== 'Completed');
+        return j.status === 'Completed';
+      });
+      return `
+        <div class="pill-tabs">
+          ${['Today','Upcoming','Completed'].map(tab => `<button class="${session.jobsTab === tab ? 'active' : ''}" data-jobs-tab="${tab}">${tab}</button>`).join('')}
+        </div>
+        <div class="list">
+          ${filtered.length ? filtered.map(workerJobCard).join('') : `<div class="empty">No jobs in this tab</div>`}
+        </div>`;
+    }
+
+    function workerJobCard(j) {
+      const c = customerById(j.customerId);
+      return `
+        <div class="job-item">
+          <div class="job-main">
+            <div class="job-time">${j.startTime}</div>
+            <div>
+              <strong>${j.title}</strong>
+              <div>${c?.name || ''}</div>
+              <div class="muted small">${formatDate(j.date)} · ${c?.address || ''}</div>
+            </div>
+          </div>
+          <div class="btn-row">
+            ${statusBadge(j.status)}
+            <button class="btn light btn-open-worker-job" data-id="${j.id}">Open</button>
+          </div>
+        </div>`;
+    }
+
+    function renderWorkerCalendar() {
+      const jobs = jobsForWorker(currentWorker().id);
+      const grouped = jobs.reduce((acc, job) => { (acc[job.date] ||= []).push(job); return acc; }, {});
+      return Object.keys(grouped).sort().map(date => `
+        <div class="card">
+          <h3 class="section-title">${formatDate(date)}</h3>
+          <div class="list">${grouped[date].sort((a,b) => a.startTime.localeCompare(b.startTime)).map(workerJobCard).join('')}</div>
+        </div>`).join('') || `<div class="empty">No jobs</div>`;
+    }
+
+    function renderWorkerDetail() {
+      const j = jobById(session.activeJobId);
+      if (!j) return `<div class="empty">Select a job first.</div>`;
+      const c = customerById(j.customerId);
+      return `
+        <div class="card">
+          <div class="btn-row" style="justify-content:space-between; align-items:center;">
+            <div>
+              <div class="label">${j.id.toUpperCase()}</div>
+              <h3 class="section-title" style="margin-top:6px">${j.title}</h3>
+              <div class="muted">${formatDate(j.date)} · ${j.startTime}-${j.endTime}</div>
+            </div>
+            ${statusBadge(j.status)}
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Customer</h3>
+          <div><strong>${c?.name || ''}</strong></div>
+          <div class="muted">${c?.phone || ''}</div>
+          <div>${c?.address || ''}</div>
+          <div class="spacer-8"></div>
+          <div class="btn-row">
+            <button class="btn secondary" id="call-customer">Call</button>
+            <button class="btn secondary" id="open-map">Map</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Service details</h3>
+          <div><strong>Type:</strong> ${j.serviceType}</div>
+          <div><strong>Description:</strong> ${j.description || '—'}</div>
+          <div><strong>Check in:</strong> ${j.checkInTime || '—'}</div>
+          <div><strong>Signature:</strong> ${j.signature || '—'}</div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Notes</h3>
+          <div class="list">${j.notes.length ? j.notes.map(n => `<div class="job-item"><div>${n}</div></div>`).join('') : `<div class="empty">No notes yet</div>`}</div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Photos</h3>
+          <div class="btn-row">${j.photos.length ? j.photos.map(p => `<img class="preview-img" src="${p.data}" alt="photo" title="${p.label}">`).join('') : `<div class="empty" style="width:100%">No photos yet</div>`}</div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Job actions</h3>
+          <div class="list">
+            <button class="btn primary" id="worker-checkin">${j.checkInTime ? 'Checked In' : 'Check In'}</button>
+            <button class="btn secondary" id="worker-start-job">Start Job</button>
+            <button class="btn secondary" id="worker-add-note">Add Note</button>
+            <button class="btn secondary" id="worker-add-photo">Add Photo</button>
+            <button class="btn secondary" id="worker-signature">Add Signature</button>
+            <button class="btn success" id="worker-finish-job">Finish Job</button>
+          </div>
+        </div>`;
+    }
+
+    function renderWorkerProfile() {
+      const w = currentWorker();
+      return `
+        <div class="card">
+          <h3 class="section-title">Profile</h3>
+          <div><strong>${w.name}</strong></div>
+          <div class="muted">${w.role}</div>
+          <div class="spacer-8"></div>
+          <div><strong>Email:</strong> ${w.email}</div>
+          <div><strong>Phone:</strong> ${w.phone}</div>
+          <div><strong>GPS:</strong> ${w.gps ? 'Enabled' : 'Disabled'}</div>
+          <div class="spacer-16"></div>
+          <div class="btn-row">
+            <button class="btn secondary" id="switch-to-admin">Open admin view</button>
+            <button class="btn danger" id="worker-logout">Logout</button>
+          </div>
+        </div>`;
+    }
+
+    function bindWorker() {
+      document.querySelectorAll('[data-mobile-page]').forEach(btn => btn.onclick = () => {
+        session.mobilePage = btn.dataset.mobilePage; saveSession(); render();
+      });
+      document.querySelectorAll('[data-jobs-tab]').forEach(btn => btn.onclick = () => {
+        session.jobsTab = btn.dataset.jobsTab; saveSession(); render();
+      });
+      const nextJobBtn = document.getElementById('open-next-job');
+      if (nextJobBtn) nextJobBtn.onclick = () => openWorkerJob(nextJobBtn.dataset.id);
+      document.querySelectorAll('.btn-open-worker-job').forEach(btn => btn.onclick = () => openWorkerJob(btn.dataset.id));
+      const call = document.getElementById('call-customer');
+      if (call) call.onclick = () => toast('Phone call simulated');
+      const map = document.getElementById('open-map');
+      if (map) map.onclick = () => toast('Map opening simulated');
+      const checkin = document.getElementById('worker-checkin');
+      if (checkin) checkin.onclick = () => {
+        const j = jobById(session.activeJobId);
+        if (!j.checkInTime) {
+          j.checkInTime = currentTime();
+          j.status = 'Checked In';
+          saveState(); render(); toast('Checked in successfully');
+        }
+      };
+      const start = document.getElementById('worker-start-job');
+      if (start) start.onclick = () => {
+        const j = jobById(session.activeJobId); j.status = 'In Progress'; saveState(); render(); toast('Job started');
+      };
+      const addNote = document.getElementById('worker-add-note');
+      if (addNote) addNote.onclick = () => {
+        const txt = prompt('Add note');
+        if (txt) { jobById(session.activeJobId).notes.push(txt); saveState(); render(); toast('Note added'); }
+      };
+      const addPhoto = document.getElementById('worker-add-photo');
+      if (addPhoto) {
+        addPhoto.onclick = () => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          input.onchange = () => {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              jobById(session.activeJobId).photos.push({ label: 'Photo', data: reader.result });
+              saveState(); render(); toast('Photo added');
+            };
+            reader.readAsDataURL(file);
+          };
+          input.click();
+        };
+      }
+      const sig = document.getElementById('worker-signature');
+      if (sig) sig.onclick = () => {
+        const name = prompt('Customer name for signature');
+        if (name) { jobById(session.activeJobId).signature = `Signed by ${name}`; saveState(); render(); toast('Signature saved'); }
+      };
+      const finish = document.getElementById('worker-finish-job');
+      if (finish) finish.onclick = () => {
+        const j = jobById(session.activeJobId);
+        j.status = 'Completed';
+        j.checkOutTime = currentTime();
+        saveState();
+        session.jobsTab = 'Completed';
+        session.mobilePage = 'jobs';
+        saveSession();
+        render();
+        toast('Job completed');
+      };
+      const swAdmin = document.getElementById('switch-to-admin');
+      if (swAdmin) swAdmin.onclick = () => { session.role = 'admin'; session.userId = 'admin'; session.page = 'dashboard'; saveSession(); render(); };
+      const logoutBtn = document.getElementById('worker-logout');
+      if (logoutBtn) logoutBtn.onclick = logout;
+    }
+
+    function openWorkerJob(id) {
+      session.activeJobId = id;
+      session.mobilePage = 'detail';
+      saveSession();
+      render();
+    }
+
+    function currentTime() {
+      const d = new Date();
+      return d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+
+    function logout() {
+      session = { loggedIn: false, role: '', userId: '', page: 'dashboard', mobilePage: 'home', activeJobId: '', jobsTab: 'Today' };
+      saveSession();
+      render();
+    }
+
+    render();
+  </script>
+<script>
+  (function () {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function (err) {
+          console.log('Service worker registration failed', err);
+        });
+      });
+    }
+
+    let deferredPrompt = null;
+    const installBtn = document.getElementById('install-app-btn');
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (installBtn) installBtn.classList.add('show');
+    });
+
+    if (installBtn) {
+      installBtn.addEventListener('click', async function () {
+        if (!deferredPrompt) {
+          alert('Use Edge or Chrome menu > Install app if the install prompt is not showing yet.');
+          return;
+        }
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.classList.remove('show');
+      });
+    }
+
+    window.addEventListener('appinstalled', function () {
+      if (installBtn) installBtn.classList.remove('show');
+    });
+  })();
+</script>
+</body>
+</html>
