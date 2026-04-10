@@ -4,12 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kingston Supabase Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
+      background: #0f172a;
+      color: white;
       margin: 0;
+      padding: 20px;
     }
 
     h1 {
@@ -18,161 +20,112 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 16px;
     }
 
     .card {
-      background: white;
+      background: #1e293b;
       border-radius: 12px;
       padding: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    .label {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 8px;
+    h2 {
+      margin-top: 0;
+      color: #facc15;
     }
 
-    .value {
-      font-size: 28px;
-      font-weight: bold;
-    }
-
-    .error {
-      margin-top: 20px;
-      background: #ffe5e5;
-      color: #a40000;
-      padding: 12px;
-      border-radius: 8px;
+    pre {
       white-space: pre-wrap;
-    }
-
-    .ok {
-      margin-top: 20px;
-      background: #e8fff0;
-      color: #0a6b2d;
+      word-break: break-word;
+      font-size: 14px;
+      background: #0b1220;
       padding: 12px;
       border-radius: 8px;
+      min-height: 60px;
     }
   </style>
 </head>
 <body>
-  <h1>Supabase Live Test</h1>
+  <h1>Kingston Enterprises - Supabase Live Test</h1>
 
   <div class="grid">
     <div class="card">
-      <div class="label">Status</div>
-      <div class="value" id="status">Connecting...</div>
+      <h2>Status</h2>
+      <pre id="status">Connecting...</pre>
     </div>
 
     <div class="card">
-      <div class="label">Company</div>
-      <div class="value" id="company">...</div>
+      <h2>Company</h2>
+      <pre id="company">Waiting...</pre>
     </div>
 
     <div class="card">
-      <div class="label">Staff</div>
-      <div class="value" id="staff">...</div>
+      <h2>Staff</h2>
+      <pre id="staff">Waiting...</pre>
     </div>
 
     <div class="card">
-      <div class="label">Customers</div>
-      <div class="value" id="customers">...</div>
+      <h2>Customers</h2>
+      <pre id="customers">Waiting...</pre>
     </div>
 
     <div class="card">
-      <div class="label">Invoices</div>
-      <div class="value" id="invoices">...</div>
+      <h2>Invoices</h2>
+      <pre id="invoices">Waiting...</pre>
     </div>
   </div>
 
-  <div id="message"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = 'https://qmcznxnajxmcbjdfzoqb.supabase.co';
-    const SUPABASE_KEY = sb_publishable_0P8BczXXThDbyz6aCUmqvQ_bIbR6CN9
+    const SUPABASE_KEY = 'sb_publishable_0P8BczXXThDbyz6aCUmqvQ_bIbR6CN9
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const statusEl = document.getElementById('status');
     const companyEl = document.getElementById('company');
     const staffEl = document.getElementById('staff');
     const customersEl = document.getElementById('customers');
     const invoicesEl = document.getElementById('invoices');
-    const messageEl = document.getElementById('message');
-
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     function showError(msg) {
-      statusEl.textContent = 'Error';
-      messageEl.innerHTML = '<div class="error">' + msg + '</div>';
+      statusEl.textContent = 'Error: ' + msg;
+      companyEl.textContent = 'Failed';
+      staffEl.textContent = 'Failed';
+      customersEl.textContent = 'Failed';
+      invoicesEl.textContent = 'Failed';
     }
 
-    function showOk(msg) {
-      messageEl.innerHTML = '<div class="ok">' + msg + '</div>';
-    }
+    async function loadTable(tableName, element) {
+      const { data, error } = await supabase.from(tableName).select('*');
 
-    async function getCount(tableName) {
-      const { count, error } = await supabase
-        .from(tableName)
-        .select('*', { count: 'exact', head: true });
-
-      if (error) throw error;
-      return count ?? 0;
-    }
-
-    async function loadDashboard() {
-      try {
-        statusEl.textContent = 'Loading...';
-
-        const [companyCount, staffCount, customersCount, invoicesCount] = await Promise.all([
-          getCount('company'),
-          getCount('staff'),
-          getCount('customers'),
-          getCount('invoices')
-        ]);
-
-        companyEl.textContent = companyCount;
-        staffEl.textContent = staffCount;
-        customersEl.textContent = customersCount;
-        invoicesEl.textContent = invoicesCount;
-        statusEl.textContent = 'Connected';
-
-        showOk('Connected to Supabase successfully.');
-      } catch (error) {
-        showError(error.message);
+      if (error) {
+        element.textContent = 'Error: ' + error.message;
+        return false;
       }
+
+      if (!data || data.length === 0) {
+        element.textContent = 'No data found';
+        return true;
+      }
+
+      element.textContent = JSON.stringify(data, null, 2);
+      return true;
     }
 
-    function subscribeLive() {
-      supabase
-        .channel('live-dashboard')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'company' },
-          loadDashboard
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'staff' },
-          loadDashboard
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'customers' },
-          loadDashboard
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'invoices' },
-          loadDashboard
-        )
-        .subscribe();
+    async function loadAll() {
+      statusEl.textContent = 'Connected';
+
+      await loadTable('company', companyEl);
+      await loadTable('staff', staffEl);
+      await loadTable('customers', customersEl);
+      await loadTable('invoices', invoicesEl);
     }
 
-    loadDashboard();
-    subscribeLive();
+    loadAll().catch((error) => {
+      showError(error.message || 'Unknown error');
+    });
   </script>
 </body>
 </html>
